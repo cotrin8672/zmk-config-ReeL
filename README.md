@@ -17,7 +17,7 @@ Raytac MDBT50Q-CX-40 が USB 接続の Central になり、左右の Seeed XIAO 
 Windows のドングルには [Nordic nRF Util](https://www.nordicsemi.com/Products/Development-tools/nRF-Util) を使います。ドングルのボタンを押したまま USB に挿し、ブートローダーの COM 番号をデバイスマネージャーで確認します。以下の COM5 は実際の番号に置き換えてください。
 
 ```powershell
-nrfutil install nrf5sdk-tools==1.1.0
+nrfutil install nrf5sdk-tools
 nrfutil nrf5sdk-tools dfu usb-serial -pkg reel_dongle.zip -p COM5
 ```
 
