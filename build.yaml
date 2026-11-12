@@ -1,0 +1,10 @@
+include:
+  - board: seeeduino_xiao_ble
+    shield: reel_left nice_view
+    artifact-name: reel_left
+  - board: seeeduino_xiao_ble
+    shield: reel_right nice_view
+    artifact-name: reel_right
+  - board: raytac_mdbt50q_cx_40
+    shield: reel_dongle
+    artifact-name: reel_dongle
