@@ -21,10 +21,10 @@ jobs:
       - name: Package the CX-40 application for its factory USB bootloader
         run: |
           test -s reel_left.uf2 && test -s reel_right.uf2 && test -s reel_dongle.hex
-          curl --fail --location --retry 3 https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/x86_64-unknown-linux-gnu/nrfutil -o nrfutil
+          curl --fail --location --retry 3 https://github.com/NordicSemiconductor/pc-nrfutil/releases/download/v6.1.7/nrfutil-linux -o nrfutil
+          echo "f45cf2f552d2ccbe5dc045a1e0725415d7e65c7ebd813ad4555f21c448cf8065  nrfutil" | sha256sum -c -
           chmod +x nrfutil
-          ./nrfutil install nrf5sdk-tools==1.1.0
-          ./nrfutil nrf5sdk-tools pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application reel_dongle.hex reel_dongle.zip
+          ./nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application reel_dongle.hex reel_dongle.zip
           unzip -t reel_dongle.zip
       - uses: actions/upload-artifact@v4
         with:
