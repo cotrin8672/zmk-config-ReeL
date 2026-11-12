@@ -46,7 +46,7 @@
                 &kp T &kp R &kp E &kp W &kp Q                       &kp P &kp O &kp I &kp U &kp Y
                 &kp G &kp F &kp D &kp S &kp A &mt LCTRL ESC         &mt LC(LSHIFT) SEMICOLON &kp L &kp K &kp J &kp H
                 &kp B &kp V &kp C &kp X &kp Z &kp LGUI              &kp SLASH &kp DOT &kp COMMA &kp M &kp N
-                &mk MB5 &mk MB4 &mt LSHIFT LANG2 &lt 1 SPACE &mt LALT LANG1    &kp MINUS &kp TAB &lt 2 ENTER &mt RCTRL BSPC
+                &mkp MB5 &mkp MB4 &mt LSHIFT LANG2 &lt 1 SPACE &mt LALT LANG1    &kp MINUS &kp TAB &lt 2 ENTER &mt RCTRL BSPC
             >;
             sensor-bindings = <&vertical>;
         };
@@ -71,7 +71,7 @@
         mouse {
             bindings = <
                 &trans &trans &trans &trans &trans                    &trans &trans &trans &trans &trans
-                &trans &trans &trans &trans &trans &trans             &trans &mk MB2 &mk MB3 &mk MB1 &trans
+                &trans &trans &trans &trans &trans &trans             &trans &mkp MB2 &mkp MB3 &mkp MB1 &trans
                 &trans &trans &trans &trans &trans &none              &trans &trans &trans &trans &trans
                 &trans &trans &trans &trans &trans                    &trans &trans &trans &trans
             >;
