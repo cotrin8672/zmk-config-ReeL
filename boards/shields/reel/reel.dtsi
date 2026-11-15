@@ -1,6 +1,13 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 
 / {
+    behaviors {
+        reel_disp: reel_disp {
+            compatible = "reel,display-state";
+            #binding-cells = <2>;
+        };
+    };
+
     chosen {
         zmk,kscan = &kscan;
         zmk,physical-layout = &layout;

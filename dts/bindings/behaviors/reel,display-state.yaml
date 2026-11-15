@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT
+
+description: |
+  Internal ReeL split display snapshot receiver. A press supplies the central's
+  highest active layer (param1, 0..3) and active host BLE profile (param2, 0..4).
+  Define the same short device name, reel_disp, on central and peripherals.
+  This behavior does not need a keymap binding. Releases have no effect.
+
+compatible: "reel,display-state"
+
+include: two_param.yaml

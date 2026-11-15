@@ -1,4 +1,5 @@
 #include "reel.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 
 &uicr { nfct-pins-as-gpios; };
 
@@ -35,6 +36,16 @@ nice_view_spi: &spi3 {
 };
 
 / {
+    // XIAO's active-low /CHG status. The Zephyr input driver owns edge/debounce handling.
+    reel_charge: charge_status {
+        compatible = "gpio-keys";
+        debounce-interval-ms = <20>;
+        charge_sense: charge_sense {
+            gpios = <&gpio0 17 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+            zephyr,code = <INPUT_KEY_BATTERY>;
+        };
+    };
+
     kscan: kscan {
         compatible = "zmk,kscan-gpio-matrix";
         wakeup-source;

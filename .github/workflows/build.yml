@@ -5,6 +5,30 @@ permissions:
   contents: read
 
 jobs:
+  display-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: zmkfirmware/lvgl
+          ref: f1db87ee98f1810328a8419572fa42a3b5f352ae
+          path: .ci-lvgl
+      - name: Check assets and render the actual LVGL screen
+        run: |
+          python3 -m pip install Pillow
+          python3 tools/generate-display-assets.py --check
+          cmake -S tests/display -B /tmp/reel-display -DLVGL_DIR="$GITHUB_WORKSPACE/.ci-lvgl" -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/reel-display --target reel_display_preview --parallel 2
+          mkdir /tmp/reel-render
+          /tmp/reel-display/reel_display_preview /tmp/reel-render
+          python3 tests/display/verify.py /tmp/reel-render
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reel-lcd-preview
+          path: /tmp/reel-render/reel-lcd-preview.png
+          if-no-files-found: error
+
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4de313367288aad5aeaa1243890e40dc813f7008
     with:
@@ -12,13 +36,16 @@ jobs:
       archive_name: reel-zmk-build
 
   package:
-    needs: build
+    needs: [build, display-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: reel-zmk-build
+      - uses: actions/download-artifact@v4
+        with:
+          name: reel-lcd-preview
       - name: Package the CX-40 application for its factory USB bootloader
         run: |
           test -s reel_left.uf2 && test -s reel_right.uf2 && test -s reel_dongle.hex
@@ -33,6 +60,7 @@ jobs:
           name: reel-zmk-firmware
           path: |
             HANDOFF-ja.md
+            reel-lcd-preview.png
             reel_left.uf2
             reel_right.uf2
             reel_dongle.zip
