@@ -1,3 +1,0 @@
-description: ReeL automatic mouse layer for synchronized trackball motion
-compatible: "reel,smart-aml"
-include: ip_zero_param.yaml

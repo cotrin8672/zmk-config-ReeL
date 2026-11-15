@@ -4,6 +4,14 @@
 
 &ball_split { status = "okay"; };
 
+&zip_temp_layer {
+    require-prior-idle-ms = <500>;
+    // Zero-based keymap positions: L/K/J (MB2/3/1), then MB5/4.
+    excluded-positions = <17 18 19 32 33>;
+};
+
+#define REEL_POINTER <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 1 2>
+
 / {
     kscan: kscan {
         compatible = "zmk,kscan-mock";
@@ -12,16 +20,15 @@
         events = <0>;
     };
 
-    reel_aml: smart_aml {
-        compatible = "reel,smart-aml";
-        #input-processor-cells = <0>;
-    };
-
     ball_listener {
         compatible = "zmk,input-listener";
         device = <&ball_split>;
         // Dominant directions of the RMK calibration: (raw Y, -raw X).
-        input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
-                           <&zip_xy_scaler 1 2>, <&reel_aml>;
+        input-processors = REEL_POINTER, <&zip_temp_layer 3 5000>;
+
+        manual_layers {
+            layers = <1 2>;
+            input-processors = REEL_POINTER;
+        };
     };
 };

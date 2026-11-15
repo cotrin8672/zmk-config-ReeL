@@ -1,6 +1,4 @@
 name: reel
 build:
-  cmake: zephyr
   settings:
     board_root: .
-    dts_root: .
