@@ -34,10 +34,9 @@
     };
 
     encoder: encoder {
-        compatible = "alps,ec11";
-        a-gpios = <&gpio1 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        b-gpios = <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        steps = <36>; // BM4.0A01: 9 quadrature cycles, 18 clicks.
+        compatible = "reel,active-encoder";
+        sense-gpios = <&gpio1 14 GPIO_PULL_UP>; // assumed physical A
+        probe-gpios = <&gpio1 15 GPIO_PULL_UP>; // assumed common C; B grounded
         status = "disabled";
     };
 

@@ -1,0 +1,10 @@
+description: ReeL two-contact roller with a grounded phase and a probed common
+compatible: "reel,active-encoder"
+include: sensor-device.yaml
+properties:
+  sense-gpios:
+    type: phandle-array
+    required: true
+  probe-gpios:
+    type: phandle-array
+    required: true

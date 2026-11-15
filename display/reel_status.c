@@ -10,6 +10,23 @@
 #include <zmk/split/bluetooth/peripheral.h>
 #include "reel_canvas.h"
 #include "reel_display_state.h"
+#if IS_ENABLED(CONFIG_SHIELD_REEL_LEFT)
+#include "../encoder/reel_encoder.h"
+#include <stdio.h>
+#include <string.h>
+
+static void show_encoder(lv_timer_t *timer) {
+    lv_obj_t *label = lv_timer_get_user_data(timer);
+    struct reel_encoder_stats s = reel_encoder_stats_get();
+    char buf[64];
+    snprintf(buf, sizeof(buf), "L:%c M:%X\n+%u -%u\n?%u D%u",
+             s.link ? '+' : '-', (unsigned)s.mask, (unsigned)s.cw, (unsigned)s.ccw,
+             (unsigned)s.ambiguous, (unsigned)s.dropped);
+    if (strcmp(lv_label_get_text(label), buf)) {
+        lv_label_set_text(label, buf);
+    }
+}
+#endif
 
 static const struct gpio_dt_spec charge_pin = GPIO_DT_SPEC_GET(DT_NODELABEL(charge_sense), gpios);
 
@@ -46,6 +63,17 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
     lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     reel_canvas_create(screen);
+#if IS_ENABLED(CONFIG_SHIELD_REEL_LEFT)
+    lv_obj_t *label = lv_label_create(screen);
+    lv_obj_set_style_bg_color(label, REEL_BACKGROUND, 0);
+    lv_obj_set_style_bg_opa(label, LV_OPA_COVER, 0);
+    lv_obj_set_style_text_color(label, REEL_FOREGROUND, 0);
+    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_timer_t *timer = lv_timer_create(show_encoder, 500, label);
+    if (timer) {
+        show_encoder(timer);
+    }
+#endif
     reel_status_widget_init();
     return screen;
 }
