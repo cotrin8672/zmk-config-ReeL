@@ -12,11 +12,16 @@
         events = <0>;
     };
 
+    reel_aml: smart_aml {
+        compatible = "reel,smart-aml";
+        #input-processor-cells = <0>;
+    };
+
     ball_listener {
         compatible = "zmk,input-listener";
         device = <&ball_split>;
         // Dominant directions of the RMK calibration: (raw Y, -raw X).
         input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
-                           <&zip_temp_layer 3 5000>;
+                           <&zip_xy_scaler 1 2>, <&reel_aml>;
     };
 };
