@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 struct reel_encoder_stats {
-    bool link;
-    uint32_t mask, cw, ccw, rejected, ambiguous, dropped;
+    uint32_t mask, pos[3], neg[3], dwell01, dwell10, dropped;
 };
 struct reel_encoder_stats reel_encoder_stats_get(void);

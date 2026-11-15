@@ -15,19 +15,24 @@ BUILD_ASSERT(DT_SAME_NODE(DT_GPIO_CTLR(DT_DRV_INST(0), sense_gpios),
                           DT_GPIO_CTLR(DT_DRV_INST(0), probe_gpios)));
 BUILD_ASSERT(DT_INST_GPIO_PIN(0, sense_gpios) != DT_INST_GPIO_PIN(0, probe_gpios));
 
-static atomic_t link_seen, passive_mask, cw_count, ccw_count, rejected, ambiguous, dropped;
-static unsigned link_run;
-static struct reel_decoder decoder;
-static uint32_t last_scan;
-static bool scanned;
+enum { PROBE_X, PROBE_Y, PASSIVE, MODES };
+static atomic_t passive_mask, positive[MODES], negative[MODES], peaks[2], dropped;
+static struct reel_decoder decoder[MODES];
+static struct reel_dwell dwell;
+static uint32_t last_scan[MODES];
+static bool scanned[MODES];
 
 struct reel_encoder_stats reel_encoder_stats_get(void) {
-    return (struct reel_encoder_stats){
-        .link = atomic_get(&link_seen), .mask = atomic_get(&passive_mask),
-        .cw = atomic_get(&cw_count), .ccw = atomic_get(&ccw_count),
-        .rejected = atomic_get(&rejected), .ambiguous = atomic_get(&ambiguous),
-        .dropped = atomic_get(&dropped),
+    struct reel_encoder_stats stats = {
+        .mask = atomic_get(&passive_mask), .dropped = atomic_get(&dropped),
+        .dwell01 = k_cyc_to_us_floor32(atomic_get(&peaks[0])) / 100,
+        .dwell10 = k_cyc_to_us_floor32(atomic_get(&peaks[1])) / 100,
     };
+    for (unsigned m = 0; m < MODES; ++m) {
+        stats.pos[m] = atomic_get(&positive[m]);
+        stats.neg[m] = atomic_get(&negative[m]);
+    }
+    return stats;
 }
 
 K_MSGQ_DEFINE(events, sizeof(int8_t), 64, 1);
@@ -39,53 +44,64 @@ static int levels(void) {
     return (!!(bits & BIT(x.pin)) << 1) | !!(bits & BIT(y.pin));
 }
 
-static void scan(struct k_timer *timer) {
-    uint32_t now = k_cycle_get_32();
-    int before = levels();
-    int low_rc = gpio_pin_set_raw(y.port, y.pin, 0);
+/* Both GPIOs are open-drain, input buffers connected. The other pin is
+ * already released whenever one pin is temporarily driven low. */
+static int probe(const struct gpio_dt_spec *pin) {
+    int rc = gpio_pin_set_raw(pin->port, pin->pin, 0);
     k_busy_wait(5);
     int driven = levels();
-    /* Always release, including after a failed read; high means disconnected
-     * for S0D1. Internal pull-ups then restore open-contact voltage. */
-    int release_rc = gpio_pin_set_raw(y.port, y.pin, 1);
+    int release = gpio_pin_set_raw(pin->port, pin->pin, 1);
     k_busy_wait(8);
-    int after = levels();
-    bool late = scanned && now - last_scan > k_us_to_cyc_ceil32(1000);
-    if (before >= 0 && before == after) {
-        atomic_or(&passive_mask, BIT(before));
-    }
-    int ab = (before < 0 || driven < 0 || after < 0 || (driven & 1) || low_rc || release_rc)
-                 ? -1 : reel_sample(before, driven & 2, after);
+    return rc || release ? -1 : driven;
+}
+
+static void account(unsigned mode, int ab, uint32_t now) {
     if (ab < 0) {
-        atomic_inc(&rejected);
-        link_run = 0;
-        return; // discard a torn scan; compare the next complete scan
+        return;
     }
-    if (late) {
-        atomic_inc(&rejected);
-        decoder.ready = false;
-        link_run = 0;
+    if (scanned[mode] && now - last_scan[mode] > k_us_to_cyc_ceil32(1000)) {
+        decoder[mode].ready = false;
     }
-    last_scan = now;
-    scanned = true;
-    if (before == 3 && !(driven & 2)) {
-        if (link_run < 8 && ++link_run == 8) {
-            atomic_set(&link_seen, 1);
-        }
-    } else {
-        link_run = 0;
-    }
+    scanned[mode] = true;
+    last_scan[mode] = now;
     bool unclear = false;
-    int8_t dir = reel_decode(&decoder, ab, now, k_us_to_cyc_ceil32(1000), &unclear);
-    if (unclear) {
-        atomic_inc(&ambiguous);
-    }
+    int8_t dir = reel_decode(&decoder[mode], ab, now, k_us_to_cyc_ceil32(1000), &unclear);
     if (dir) {
-        atomic_inc(dir > 0 ? &cw_count : &ccw_count);
-        if (k_msgq_put(&events, &dir, K_NO_WAIT)) {
+        atomic_inc(dir > 0 ? &positive[mode] : &negative[mode]);
+        if (mode == PROBE_X && k_msgq_put(&events, &dir, K_NO_WAIT)) {
             atomic_inc(&dropped);
         }
     }
+}
+
+static void scan(struct k_timer *timer) {
+    uint32_t now = k_cycle_get_32();
+    int before = levels();
+    int y_low = probe(&y);
+    int mid = levels();
+    int x_low = probe(&x);
+    int after = levels();
+    int raw = before >= 0 && before == mid && mid == after ? before : -1;
+    uint32_t run = reel_dwell_update(&dwell, raw, now, k_us_to_cyc_ceil32(1000),
+                                     k_ms_to_cyc_ceil32(999));
+    if (raw < 0) {
+        return;
+    }
+    atomic_or(&passive_mask, BIT(raw));
+    if (raw == 1 || raw == 2) {
+        atomic_t *peak = &peaks[raw - 1];
+        if (run > (uint32_t)atomic_get(peak)) {
+            atomic_set(peak, run);
+        }
+    }
+    if (x_low >= 0 && !(x_low & 2)) {
+        unsigned yx = reel_swap(raw);
+        account(PROBE_X, reel_sample(yx, x_low & 1, yx), now);
+    }
+    if (y_low >= 0 && !(y_low & 1)) {
+        account(PROBE_Y, reel_sample(raw, y_low & 2, raw), now);
+    }
+    account(PASSIVE, raw, now);
 }
 K_TIMER_DEFINE(scan_timer, scan, NULL);
 
@@ -132,7 +148,7 @@ static int init(const struct device *dev) {
     if (!gpio_is_ready_dt(&x) || !gpio_is_ready_dt(&y)) {
         return -ENODEV;
     }
-    int rc = gpio_pin_configure_dt(&x, GPIO_INPUT);
+    int rc = gpio_pin_configure_dt(&x, GPIO_INPUT | GPIO_OUTPUT_HIGH | GPIO_OPEN_DRAIN);
     return rc ? rc : gpio_pin_configure_dt(&y, GPIO_INPUT | GPIO_OUTPUT_HIGH | GPIO_OPEN_DRAIN);
 }
 static const struct sensor_driver_api api = {

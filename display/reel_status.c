@@ -19,9 +19,10 @@ static void show_encoder(lv_timer_t *timer) {
     lv_obj_t *label = lv_timer_get_user_data(timer);
     struct reel_encoder_stats s = reel_encoder_stats_get();
     char buf[64];
-    snprintf(buf, sizeof(buf), "L:%c M:%X\n+%u -%u\n?%u D%u",
-             s.link ? '+' : '-', (unsigned)s.mask, (unsigned)s.cw, (unsigned)s.ccw,
-             (unsigned)s.ambiguous, (unsigned)s.dropped);
+    snprintf(buf, sizeof(buf), "14:%u/%u 15:%u/%u\nP:%u/%u M:%X D:%u\n01:%u 10:%u",
+             (unsigned)s.pos[0], (unsigned)s.neg[0], (unsigned)s.pos[1], (unsigned)s.neg[1],
+             (unsigned)s.pos[2], (unsigned)s.neg[2], (unsigned)s.mask, (unsigned)s.dropped,
+             (unsigned)s.dwell01, (unsigned)s.dwell10);
     if (strcmp(lv_label_get_text(label), buf)) {
         lv_label_set_text(label, buf);
     }

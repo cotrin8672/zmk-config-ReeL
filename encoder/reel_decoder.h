@@ -19,6 +19,31 @@ struct reel_decoder {
     uint32_t edge_at;
 };
 
+static inline unsigned reel_swap(unsigned xy) {
+    return ((xy & 1) << 1) | ((xy & 2) >> 1);
+}
+
+/* Elapsed time between consecutive agreeing snapshots, not the duration of
+ * a single observation. Never bridge an invalid bracket or scheduler gap. */
+struct reel_dwell {
+    int state;
+    uint32_t last, run;
+    bool valid;
+};
+static inline uint32_t reel_dwell_update(struct reel_dwell *d, int state, uint32_t now,
+                                         uint32_t max_gap, uint32_t cap) {
+    uint32_t gap = now - d->last;
+    if (state < 0 || !d->valid || state != d->state || gap > max_gap) {
+        d->run = 0;
+    } else {
+        d->run += gap < cap - d->run ? gap : cap - d->run;
+    }
+    d->valid = state >= 0;
+    d->state = state;
+    d->last = now;
+    return d->run;
+}
+
 /* Feed ordered, verified scans. Debounce A, including cancelled excursions.
  * Only valid A crossings contribute: a return across the same contact cancels
  * the departure. B-only tail chatter never carries over into a reversal. */
