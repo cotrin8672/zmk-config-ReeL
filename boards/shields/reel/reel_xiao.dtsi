@@ -42,7 +42,8 @@ nice_view_spi: &spi3 {
         debounce-interval-ms = <20>;
         charge_sense: charge_sense {
             gpios = <&gpio0 17 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-            zephyr,code = <INPUT_KEY_BATTERY>;
+            // Local power-status event only; this device has no HID input listener.
+            zephyr,code = <INPUT_KEY_POWER>;
         };
     };
 
