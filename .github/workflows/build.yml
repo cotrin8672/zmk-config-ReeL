@@ -15,12 +15,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: reel-zmk-build
       - name: Package the CX-40 application for its factory USB bootloader
         run: |
           test -s reel_left.uf2 && test -s reel_right.uf2 && test -s reel_dongle.hex
+          python3 tools/check-uf2.py
           curl --fail --location --retry 3 https://github.com/NordicSemiconductor/pc-nrfutil/releases/download/v6.1.7/nrfutil-linux -o nrfutil
           echo "f45cf2f552d2ccbe5dc045a1e0725415d7e65c7ebd813ad4555f21c448cf8065  nrfutil" | sha256sum -c -
           chmod +x nrfutil
@@ -30,6 +32,7 @@ jobs:
         with:
           name: reel-zmk-firmware
           path: |
+            HANDOFF-ja.md
             reel_left.uf2
             reel_right.uf2
             reel_dongle.zip

@@ -1,5 +1,7 @@
 # ReeL ZMK
 
+RMKから移行する場合は [実機PC向けの引き継ぎと診断手順](HANDOFF-ja.md) を参照してください。
+
 Raytac MDBT50Q-CX-40 が USB 接続の Central になり、左右の Seeed XIAO nRF52840 が BLE で接続します。左にはエンコーダー、右には PMW3610、両側には beekeeb の Sharp LS011B7DH03（nice_view）があります。PC に左右をペアリングする必要はありません。
 
 [RMK main の既定配列](https://github.com/cotrin8672/rmk-config-ReeL/blob/45bbb9d688d6e555129441cf5bf2af7871a0a07f/src/keymap.rs)を [config/reel.keymap](config/reel.keymap) に移植しました。4レイヤーとも RMK の行・列順で、実装のない3位置を省略しています。Vial から実機に保存した変更は含まれていません。ハードウェアの基準は [ReeL b9bacc7](https://github.com/cotrin8672/ReeL/tree/b9bacc7681b5a1461f23b08cf7a2b1b867c73b0e/hardware/pcb) です。

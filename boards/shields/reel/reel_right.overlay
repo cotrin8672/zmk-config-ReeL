@@ -12,8 +12,13 @@
 &pinctrl {
     ball_default: reel_ball_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>, <NRF_PSEL(SPIM_MOSI, 1, 15)>,
-                    <NRF_PSEL(SPIM_MISO, 1, 15)>;
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>;
+        };
+        group2 {
+            // Release the shared SDIO line during reads (SPIM sends 0xff).
+            psels = <NRF_PSEL(SPIM_MOSI, 1, 15)>, <NRF_PSEL(SPIM_MISO, 1, 15)>;
+            nordic,drive-mode = <NRF_DRIVE_S0D1>;
+            bias-pull-up;
         };
     };
     ball_sleep: reel_ball_sleep {
@@ -35,7 +40,7 @@
     ball: pmw3610@0 {
         compatible = "pixart,pmw3610";
         reg = <0>;
-        spi-max-frequency = <2000000>;
+        spi-max-frequency = <125000>;
         motion-gpios = <&gpio1 14 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         res-cpi = <1600>;
         zephyr,axis-x = <INPUT_REL_X>;
