@@ -3,7 +3,14 @@
 / {
     chosen {
         zmk,kscan = &kscan;
-        zmk,matrix-transform = &reel_transform;
+        zmk,physical-layout = &layout;
+    };
+
+    layout: physical_layout {
+        compatible = "zmk,physical-layout";
+        display-name = "ReeL";
+        transform = <&reel_transform>;
+        kscan = <&kscan>;
     };
 
     reel_transform: matrix_transform {

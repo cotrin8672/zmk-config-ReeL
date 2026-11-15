@@ -1,5 +1,7 @@
 #include "reel.dtsi"
 
+&uicr { nfct-pins-as-gpios; };
+
 &i2c1 { status = "disabled"; };
 &uart0 { status = "disabled"; };
 &spi2 { status = "disabled"; };
