@@ -2,6 +2,10 @@ if(CONFIG_SHIELD_REEL_LEFT OR CONFIG_SHIELD_REEL_RIGHT OR CONFIG_SHIELD_REEL_DON
   target_sources(app PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../display/reel_display_state.c)
 endif()
 
+if(CONFIG_SHIELD_REEL_DONGLE AND CONFIG_ZMK_USB_LOGGING)
+  target_sources(app PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../pointing/reel_input_probe.c)
+endif()
+
 if(CONFIG_ZMK_DISPLAY AND (CONFIG_SHIELD_REEL_LEFT OR CONFIG_SHIELD_REEL_RIGHT))
   target_sources(app PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../display/reel_status.c

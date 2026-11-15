@@ -13,10 +13,15 @@
 };
 
 // Base sensitivity without the response curve: 1600 sensor CPI * 3/8 = 600 CPI.
-// Smooth and curve raw deltas before scaling, using the same chain on every layer.
-#define REEL_POINTER <&zip_spike_filter 3>, <&zip_response_curve 3>, <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 3 8>
+// Trace raw -> LPF -> RC -> scaled output; L1/L2 use RC0 for live comparison.
+#define REEL_POINTER(curve, probe_offset) <&reel_pointer_probe (probe_offset)>, <&zip_spike_filter 3>, <&reel_pointer_probe (probe_offset + 1)>, <&zip_response_curve curve>, <&reel_pointer_probe (probe_offset + 2)>, <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 3 8>, <&reel_pointer_probe (probe_offset + 3)>
 
 / {
+    reel_pointer_probe: reel_pointer_probe {
+        compatible = "reel,input-probe";
+        #input-processor-cells = <1>;
+    };
+
     kscan: kscan {
         compatible = "zmk,kscan-mock";
         rows = <0>;
@@ -28,11 +33,11 @@
         compatible = "zmk,input-listener";
         device = <&ball_split>;
         // Dominant directions of the RMK calibration: (raw Y, -raw X).
-        input-processors = REEL_POINTER, <&zip_temp_layer 3 5000>;
+        input-processors = REEL_POINTER(3, 0), <&zip_temp_layer 3 5000>;
 
         manual_layers {
             layers = <1 2>;
-            input-processors = REEL_POINTER;
+            input-processors = REEL_POINTER(0, 4);
         };
     };
 };

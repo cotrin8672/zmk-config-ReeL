@@ -1,0 +1,3 @@
+description: Diagnostic snapshots before and after trackball input processors
+compatible: "reel,input-probe"
+include: ip_one_param.yaml
