@@ -10,6 +10,17 @@
 &msc { trigger-period-ms = <20>; };
 
 / {
+    combos {
+        compatible = "zmk,combos";
+        // Hold Enter for L2, then press the physical Q and P keys together.
+        combo_studio_unlock {
+            timeout-ms = <50>;
+            key-positions = <4 5>;
+            layers = <2>;
+            bindings = <&studio_unlock>;
+        };
+    };
+
     behaviors {
         // RMK td!(0): tap Backspace, hold RCtrl, tap then hold to repeat Backspace.
         bs_ctrl: backspace_ctrl {
@@ -51,6 +62,7 @@
     keymap {
         compatible = "zmk,keymap";
         base {
+            display-name = "L0 Base";
             bindings = <
                 &kp T &kp R &kp E &kp W &kp Q                       &kp P &kp O &kp I &kp U &kp Y
                 &kp G &kp F &kp D &kp S &kp A &mt LCTRL ESC         &mt LC(LSHIFT) SEMICOLON &kp L &kp K &kp J &kp H
@@ -60,6 +72,7 @@
             sensor-bindings = <&vertical>;
         };
         numbers {
+            display-name = "L1 Numbers";
             bindings = <
                 &kp N5 &kp N4 &kp N3 &kp N2 &kp N1                   &kp N0 &kp N9 &kp N8 &kp N7 &kp N6
                 &kp LS(COMMA) &kp LS(N9) &kp LS(LBKT) &kp LBKT &kp LS(SQT) &trans   &kp SQT &kp RBKT &kp LS(RBKT) &kp LS(N0) &kp LS(DOT)
@@ -69,6 +82,7 @@
             sensor-bindings = <&vertical>;
         };
         navigation {
+            display-name = "L2 Navigation";
             bindings = <
                 &kp F5 &kp F4 &kp F3 &kp F2 &kp F1                    &kp F10 &kp F9 &kp F8 &kp F7 &kp F6
                 &kp LG(LS(T)) &kp LS(BACKSLASH) &kp LS(N7) &kp LS(N1) &kp LS(N6) &trans   &kp LS(N4) &kp RIGHT &kp UP &kp DOWN &kp LEFT
@@ -78,6 +92,7 @@
             sensor-bindings = <&horizontal>;
         };
         mouse {
+            display-name = "L3 Mouse";
             bindings = <
                 &trans &trans &trans &trans &trans                    &trans &trans &trans &trans &trans
                 &trans &trans &trans &trans &trans &trans             &trans &mkp MB2 &mkp MB3 &mkp MB1 &trans

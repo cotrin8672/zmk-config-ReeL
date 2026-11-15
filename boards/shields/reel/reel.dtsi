@@ -57,3 +57,5 @@
         };
     };
 };
+
+#include "reel-layouts.dtsi"

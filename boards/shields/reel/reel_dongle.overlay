@@ -10,7 +10,8 @@
     excluded-positions = <17 18 19 32 33>;
 };
 
-#define REEL_POINTER <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 1 2>
+// 1600 sensor CPI * 3/8 = 600 effective CPI, preserving fractional movement.
+#define REEL_POINTER <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 3 8>
 
 / {
     kscan: kscan {
