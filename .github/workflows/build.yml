@@ -14,15 +14,26 @@ jobs:
           repository: zmkfirmware/lvgl
           ref: f1db87ee98f1810328a8419572fa42a3b5f352ae
           path: .ci-lvgl
+      - uses: actions/checkout@v4
+        with:
+          repository: zmkfirmware/zephyr
+          ref: 10ba6d0cb38bc3d258775d27982f707599320085
+          path: .ci-zephyr
+          sparse-checkout: modules/lvgl
       - name: Check assets and render the actual LVGL screen
         run: |
           python3 -m pip install Pillow
           python3 tools/generate-display-assets.py --check
-          cmake -S tests/display -B /tmp/reel-display -DLVGL_DIR="$GITHUB_WORKSPACE/.ci-lvgl" -DCMAKE_BUILD_TYPE=Debug
+          cmake -S tests/display -B /tmp/reel-display -DLVGL_DIR="$GITHUB_WORKSPACE/.ci-lvgl" -DZEPHYR_DIR="$GITHUB_WORKSPACE/.ci-zephyr" -DCMAKE_BUILD_TYPE=Debug
           cmake --build /tmp/reel-display --target reel_display_preview --parallel 2
           mkdir /tmp/reel-render
           /tmp/reel-display/reel_display_preview /tmp/reel-render
           python3 tests/display/verify.py /tmp/reel-render
+          cmake -S tests/display -B /tmp/reel-display -DREEL_TEST_INVERTED=OFF
+          cmake --build /tmp/reel-display --target reel_display_preview --parallel 2
+          mkdir /tmp/reel-polarity-negative
+          /tmp/reel-display/reel_display_preview /tmp/reel-polarity-negative
+          python3 tests/display/check_polarity.py /tmp/reel-render /tmp/reel-polarity-negative
       - uses: actions/upload-artifact@v4
         with:
           name: reel-lcd-preview

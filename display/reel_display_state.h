@@ -10,7 +10,6 @@
 struct reel_display_state {
     bool valid;
     uint8_t layer;
-    uint8_t profile;
 };
 
 struct reel_display_state_changed {
@@ -19,5 +18,5 @@ struct reel_display_state_changed {
 
 ZMK_EVENT_DECLARE(reel_display_state_changed);
 
-/* Thread-safe snapshot. Ignore layer/profile while valid is false. */
+/* Thread-safe snapshot. Ignore layer while valid is false. */
 struct reel_display_state reel_display_state_get(void);

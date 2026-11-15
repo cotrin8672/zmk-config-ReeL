@@ -34,7 +34,7 @@ static void image(lv_layer_t *layer, const lv_image_dsc_t *source, int x, int y)
     lv_draw_image_dsc_t dsc;
     lv_draw_image_dsc_init(&dsc);
     dsc.src = source;
-    dsc.recolor = lv_color_black();
+    dsc.recolor = REEL_FOREGROUND;
     dsc.recolor_opa = LV_OPA_COVER;
     const lv_area_t area = {x, y, x + source->header.w - 1, y + source->header.h - 1};
     lv_draw_image(layer, &dsc, &area);
@@ -49,7 +49,7 @@ static void charging_mark(lv_layer_t *layer, int fill) {
             if (mark[row] & (1u << (4 - column))) {
                 int x = 8 + column;
                 rectangle(layer, x, 6 + row, 1, 1, true,
-                          x < 4 + fill ? lv_color_white() : lv_color_black());
+                          x < 4 + fill ? REEL_BACKGROUND : REEL_FOREGROUND);
             }
         }
     }
@@ -58,21 +58,21 @@ static void charging_mark(lv_layer_t *layer, int fill) {
 static bool unchanged(struct reel_screen_state s) {
     return rendered && s.battery == previous.battery && s.charging == previous.charging &&
            s.connected == previous.connected && s.remote_valid == previous.remote_valid &&
-           s.layer == previous.layer && s.profile == previous.profile;
+           s.layer == previous.layer;
 }
 
 void reel_canvas_update(struct reel_screen_state state) {
     if (unchanged(state)) {
         return;
     }
-    lv_canvas_fill_bg(portrait, lv_color_white(), LV_OPA_COVER);
+    lv_canvas_fill_bg(portrait, REEL_BACKGROUND, LV_OPA_COVER);
     lv_layer_t layer;
     lv_canvas_init_layer(portrait, &layer);
     image(&layer, &reel_status_base, 0, 0);
 
     int level = state.battery < 0 ? -1 : LV_MIN(state.battery, 100);
     int fill = level < 0 ? 0 : (13 * level + 50) / 100;
-    rectangle(&layer, 4, 6, fill, 5, true, lv_color_black());
+    rectangle(&layer, 4, 6, fill, 5, true, REEL_FOREGROUND);
     if (state.charging) {
         charging_mark(&layer, fill);
     }
@@ -86,20 +86,16 @@ void reel_canvas_update(struct reel_screen_state state) {
     lv_draw_label_dsc_t label;
     lv_draw_label_dsc_init(&label);
     label.font = &reel_status_font;
-    label.color = lv_color_black();
+    label.color = REEL_FOREGROUND;
     label.text = percentage;
     const lv_area_t text_area = {24, 4, 50, 13};
     lv_draw_label(&layer, &label, &text_area);
 
-    rectangle(&layer, 52, 9, 4, 4, state.connected, lv_color_black());
-    rectangle(&layer, 57, 6, 4, 7, state.connected, lv_color_black());
-    rectangle(&layer, 62, 3, 4, 10, state.connected, lv_color_black());
+    rectangle(&layer, 52, 9, 4, 4, state.connected, REEL_FOREGROUND);
+    rectangle(&layer, 57, 6, 4, 7, state.connected, REEL_FOREGROUND);
+    rectangle(&layer, 62, 3, 4, 10, state.connected, REEL_FOREGROUND);
     if (state.remote_valid) {
         image(&layer, &reel_layer_pointer, 4, 65 + LV_MIN(state.layer, 3) * 13);
-    }
-    for (int profile = 0; profile < 5; profile++) {
-        rectangle(&layer, 23 + profile * 8, 148, 5, 5,
-                  state.remote_valid && profile == state.profile, lv_color_black());
     }
     lv_canvas_finish_layer(portrait, &layer);
 

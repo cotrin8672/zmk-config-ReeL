@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "display" / "assets"
 WIDTH, HEIGHT = 68, 160
 ROW_BYTES = (WIDTH + 7) // 8
+FOOTER_START = 141  # Original full-width separator, above the Bluetooth icon.
 BASE_SOURCE = "lcd_status_base_68x160.raw"
 SYMBOL_SOURCE = "status_symbols.json"
 
@@ -49,6 +50,10 @@ def load_sources():
         raise ValueError(f"{BASE_SOURCE}: nonzero unused row padding bits")
     base = [[(raw[y * ROW_BYTES + x // 8] >> (x % 8)) & 1
              for x in range(WIDTH)] for y in range(HEIGHT)]
+    # USB-dongle screen: omit the separator and Bluetooth footer in the runtime
+    # mask, while keeping the portable RMK provenance asset byte-for-byte.
+    for y in range(FOOTER_START, HEIGHT):
+        base[y] = [0] * WIDTH
     symbol_bytes = (ASSETS / SYMBOL_SOURCE).read_bytes()
     symbols = json.loads(symbol_bytes)
     if symbols["line_height"] != 9:
@@ -168,6 +173,9 @@ def generate(base, symbols, hashes):
     provenance += " * RMK artwork provenance: display/assets/README.md.\n"
     for name, digest in hashes.items():
         provenance += f" * {name} SHA-256: {digest}\n"
+    provenance += f" * Runtime base: rows {FOOTER_START}..{HEIGHT - 1} cleared (USB dongle).\n"
+    base_digest = hashlib.sha256(pack_msb(base, row_aligned=True)).hexdigest()
+    provenance += f" * reel_status_base A1 SHA-256: {base_digest}\n"
     provenance += " */\n"
     header = provenance + """
 #ifndef REEL_ASSETS_H
@@ -185,10 +193,12 @@ extern "C" {
 
 #define REEL_STATUS_BASE_WIDTH 68
 #define REEL_STATUS_BASE_HEIGHT 160
+#define REEL_STATUS_BASE_FOOTER_START 141
 #define REEL_STATUS_FONT_LINE_HEIGHT 9
 #define REEL_STATUS_FONT_ADVANCE 6
 
 /* Portrait A1 masks: MSB first, byte-aligned rows, bit 1 = opaque ink.
+ * Base rows 141..159 are clear; the original source artwork is preserved.
  * Draw in black on a white background; no palette or driver is included. */
 extern const lv_image_dsc_t reel_status_base;
 extern const lv_image_dsc_t reel_charge_mark;
@@ -238,7 +248,7 @@ def preview(path, base, symbols):
         if value is not None:
             text(image, value, 24, 4)
         left = 8 + index * (WIDTH * scale + 16)
-        labels.text((left, 4), "Static base" if value is None else value, fill=0)
+        labels.text((left, 4), "Runtime base" if value is None else value, fill=0)
         canvas.paste(image.resize((WIDTH * scale, HEIGHT * scale), Image.Resampling.NEAREST),
                      (left, 24))
     strip = Image.new("L", (150, 16), 255)

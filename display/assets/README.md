@@ -1,6 +1,6 @@
 # ReeL status artwork
 
-These are logical portrait assets (68 x 160), with the original RMK pixels.
+These are logical portrait assets (68 x 160), derived from the original RMK pixels.
 There is no display transport, framebuffer driver, rotation, or status renderer
 in this asset package.
 
@@ -35,6 +35,18 @@ authored by cotrin8672. The source commits and paths were inspected:
 No separate artwork license notice was found alongside the RMK raw artwork;
 this conversion records its origin without asserting a new artwork license.
 
+## Runtime base for USB-dongle use
+
+The raw provenance asset above remains byte-for-byte unchanged. The generator
+clears rows **141 through 159 inclusive** in `reel_status_base`: the separator
+at y=141 and Bluetooth icon at y=146..154 are omitted. All pixels in rows
+0..140, the 68 x 160 dimensions, glyphs, and other icon assets are preserved.
+The five profile squares were dynamic geometry, not part of the raw artwork;
+the USB-dongle reference screen omits them as well.
+
+Generated comments record both source fingerprints and the derived A1 base's
+SHA-256, together with the exact footer-clearing rule.
+
 ## Regeneration
 
 Run from the repository root (Python 3, no packages needed):
@@ -54,7 +66,7 @@ Python environment with Pillow:
 rtk python tools/generate-display-assets.py --preview C:/Users/gummy/Downloads/reel-assets.png
 ```
 
-The preview shows the unchanged base, text placement examples, every glyph,
+The preview shows the derived runtime base, text placement examples, every glyph,
 and both icons. Text examples intentionally add only the font to the base;
 they are not a complete status renderer.
 

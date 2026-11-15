@@ -21,7 +21,6 @@ static struct reel_screen_state get_state(const zmk_event_t *event) {
         .connected = zmk_split_bt_peripheral_is_connected(),
         .remote_valid = remote.valid,
         .layer = remote.layer,
-        .profile = remote.profile,
     };
 }
 
@@ -43,7 +42,7 @@ INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_NODELABEL(reel_charge)), charge_changed, 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
     lv_obj_remove_style_all(screen);
-    lv_obj_set_style_bg_color(screen, lv_color_white(), 0);
+    lv_obj_set_style_bg_color(screen, REEL_BACKGROUND, 0);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
     lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     reel_canvas_create(screen);

@@ -2,7 +2,8 @@
 
 description: |
   Internal ReeL split display snapshot receiver. A press supplies the central's
-  highest active layer (param1, 0..3) and active host BLE profile (param2, 0..4).
+  highest active layer (param1, 0..3). Param2 is reserved and ignored to remain
+  compatible with the earlier central firmware that sent a host BLE profile.
   Define the same short device name, reel_disp, on central and peripherals.
   This behavior does not need a keymap binding. Releases have no effect.
 

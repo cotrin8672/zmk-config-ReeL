@@ -31,7 +31,7 @@ static bool peripheral_connected;
 #endif
 
 static bool states_equal(struct reel_display_state a, struct reel_display_state b) {
-    return a.valid == b.valid && a.layer == b.layer && a.profile == b.profile;
+    return a.valid == b.valid && a.layer == b.layer;
 }
 
 struct reel_display_state reel_display_state_get(void) {
@@ -65,8 +65,6 @@ static int update_state(struct reel_display_state state) {
 #include <zephyr/sys/atomic.h>
 #include <zephyr/sys/iterable_sections.h>
 
-#include <zmk/ble.h>
-#include <zmk/events/ble_active_profile_changed.h>
 #include <zmk/events/layer_state_changed.h>
 #include <zmk/events/position_state_changed.h>
 #include <zmk/keymap.h>
@@ -123,12 +121,11 @@ static void sync_work_cb(struct k_work *work) {
     }
 
     int layer = zmk_keymap_highest_layer_active();
-    int profile = zmk_ble_active_profile_index();
-    if (layer < 0 || layer > 3 || profile < 0 || profile > 4) {
-        LOG_ERR("Display state out of range: layer %d, profile %d", layer, profile);
+    if (layer < 0 || layer > 3) {
+        LOG_ERR("Display layer out of range: %d", layer);
         return;
     }
-    struct reel_display_state state = {.valid = true, .layer = layer, .profile = profile};
+    struct reel_display_state state = {.valid = true, .layer = layer};
     int err = update_state(state);
     if (err < 0) {
         LOG_WRN("Failed to notify display state listeners (%d)", err);
@@ -142,7 +139,7 @@ static void sync_work_cb(struct k_work *work) {
         struct zmk_behavior_binding binding = {
             .behavior_dev = DEVICE_DT_NAME(DT_DRV_INST(0)),
             .param1 = state.layer,
-            .param2 = state.profile,
+            .param2 = 0, // Reserved: keep the two-parameter split behavior ABI.
         };
         struct zmk_behavior_binding_event event = {
             .timestamp = now,
@@ -184,14 +181,13 @@ static int central_listener(const zmk_event_t *eh) {
         /* One source-specific fallback if discovery outlasted the replay window. */
         atomic_set_bit(key_fallbacks, ev->source);
     }
-    /* Coalesce layer transitions and profile connection events into a snapshot. */
+    /* Coalesce layer transitions into a snapshot. */
     k_work_reschedule(&sync_work, K_MSEC(20));
     return ZMK_EV_EVENT_BUBBLE;
 }
 
 ZMK_LISTENER(reel_display_state_central, central_listener);
 ZMK_SUBSCRIPTION(reel_display_state_central, zmk_layer_state_changed);
-ZMK_SUBSCRIPTION(reel_display_state_central, zmk_ble_active_profile_changed);
 ZMK_SUBSCRIPTION(reel_display_state_central, zmk_position_state_changed);
 
 static bool is_split_connection(struct bt_conn *conn) {
@@ -273,11 +269,11 @@ static int binding_pressed(struct zmk_behavior_binding *binding,
     ARG_UNUSED(binding);
     return -ENOTSUP;
 #else
-    if (binding->param1 > 3 || binding->param2 > 4) {
+    if (binding->param1 > 3) {
         return -EINVAL;
     }
     return update_state((struct reel_display_state){
-        .valid = true, .layer = binding->param1, .profile = binding->param2});
+        .valid = true, .layer = binding->param1});
 #endif
 }
 
