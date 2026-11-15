@@ -5,7 +5,7 @@
 ## 分かったこと
 
 - 旧ビルド 979e9df の左右UF2はアプリ開始が 0x27000。移行元の [RMK memory.x](https://github.com/cotrin8672/rmk-config-ReeL/blob/45bbb9d688d6e555129441cf5bf2af7871a0a07f/memory.x) は 0x1000。ボールの調整より先に起動位置を合わせる必要がある。実機のブートローダーが実際にどちらへジャンプしたかは未観測。
-- 修正版は公式ZMKの XIAO ボードと nrf52840-nosd snippet、nice_view、ZephyrのPMW3610・エンコーダードライバーを使用。RaytacにはこのZephyr版に同型番のボード定義がないため、基板・フラッシュ配置のみリポジトリ内で宣言。外部のRaytac/PMW3610モジュールは使わない。
+- 修正版は公式ZMKの XIAO ボードと nrf52840-nosd snippet、nice_view、ZephyrのPMW3610ドライバーを使用。左エンコーダーはReeL専用の接点読み取り。Raytacの基板・フラッシュ配置はリポジトリ内で宣言。
 - 旧nice_view標準のPeripheral画面はUSB給電中に充電マークを表示する。LCD復元版はP0.17の実際の充電信号を表示する。SharpのメモリLCDは画面が残ることもあり、アイコン単独では起動・停止を区別できない。
 
 ## LCD復元版

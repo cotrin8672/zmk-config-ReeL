@@ -24,6 +24,8 @@ jobs:
         run: |
           python3 -m pip install Pillow
           python3 tools/generate-display-assets.py --check
+          cc -std=c11 -Wall -Wextra -Werror tests/encoder/check.c -o /tmp/reel-encoder-test
+          /tmp/reel-encoder-test
           cmake -S tests/display -B /tmp/reel-display -DLVGL_DIR="$GITHUB_WORKSPACE/.ci-lvgl" -DZEPHYR_DIR="$GITHUB_WORKSPACE/.ci-zephyr" -DCMAKE_BUILD_TYPE=Debug
           cmake --build /tmp/reel-display --target reel_display_preview --parallel 2
           mkdir /tmp/reel-render

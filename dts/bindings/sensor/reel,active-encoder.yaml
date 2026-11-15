@@ -1,0 +1,12 @@
+description: ReeL two-contact roller with a grounded phase and a probed common
+compatible: "reel,active-encoder"
+include: sensor-device.yaml
+properties:
+  sense-gpios:
+    type: phandle-array
+    required: true
+    description: Physical phase A, input with pull-up
+  probe-gpios:
+    type: phandle-array
+    required: true
+    description: Physical common C, open-drain low or released; phase B is grounded
