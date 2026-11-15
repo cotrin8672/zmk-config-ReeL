@@ -24,6 +24,7 @@ target_include_directories(reel_display_preview PRIVATE
   ../../display zephyr-shim ${ZEPHYR_DIR}/modules/lvgl/include)
 option(REEL_TEST_INVERTED "Use the nice_view inversion required by the pinned adapter" ON)
 target_compile_definitions(reel_display_preview PRIVATE
+  "LV_CONF_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h\""
   CONFIG_LV_DRAW_BUF_STRIDE_ALIGN=1
   CONFIG_NICE_VIEW_WIDGET_INVERTED=$<BOOL:${REEL_TEST_INVERTED}>)
 if(NOT MSVC)

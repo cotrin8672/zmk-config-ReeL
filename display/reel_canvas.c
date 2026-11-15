@@ -28,6 +28,9 @@ static void rectangle(lv_layer_t *layer, int x, int y, int width, int height, bo
     dsc.radius = 0;
     const lv_area_t area = {x, y, x + width - 1, y + height - 1};
     lv_draw_rect(layer, &dsc, &area);
+    // Like nice_view's helpers, finish each offscreen primitive immediately so
+    // charging marks do not accumulate draw descriptors in the small LVGL heap.
+    lv_canvas_finish_layer(portrait, layer);
 }
 
 static void image(lv_layer_t *layer, const lv_image_dsc_t *source, int x, int y) {
@@ -38,6 +41,7 @@ static void image(lv_layer_t *layer, const lv_image_dsc_t *source, int x, int y)
     dsc.recolor_opa = LV_OPA_COVER;
     const lv_area_t area = {x, y, x + source->header.w - 1, y + source->header.h - 1};
     lv_draw_image(layer, &dsc, &area);
+    lv_canvas_finish_layer(portrait, layer);
 }
 
 static void charging_mark(lv_layer_t *layer, int fill) {
@@ -90,6 +94,7 @@ void reel_canvas_update(struct reel_screen_state state) {
     label.text = percentage;
     const lv_area_t text_area = {24, 4, 50, 13};
     lv_draw_label(&layer, &label, &text_area);
+    lv_canvas_finish_layer(portrait, &layer);
 
     rectangle(&layer, 52, 9, 4, 4, state.connected, REEL_FOREGROUND);
     rectangle(&layer, 57, 6, 4, 7, state.connected, REEL_FOREGROUND);
