@@ -5,6 +5,7 @@
 #include <lvgl.h>
 #include <lvgl_display.h>
 #include "reel_canvas.h"
+#include "bounded_heap.h"
 
 static uint8_t display_buffer[160 * 68 / 8 + 8];
 static uint8_t flushed[160 * 68 / 8];
@@ -89,6 +90,17 @@ int main(int argc, char **argv) {
     snprintf(name, sizeof(name), "%s/reconnected.pgm", argv[1]);
     write_portrait(name);
 
+    // Exercise repeated state changes with caching disabled and a fixed pool.
+    uint8_t baseline[sizeof(flushed)];
+    memcpy(baseline, flushed, sizeof(baseline));
+    for (int redraw = 0; redraw < 120; redraw++) {
+        reel_canvas_update(states[redraw % (sizeof(states) / sizeof(states[0]))]);
+        lv_refr_now(display);
+    }
+    reel_canvas_update(states[0]);
+    lv_refr_now(display);
+    assert(memcmp(baseline, flushed, sizeof(baseline)) == 0);
+
     // Exercise a flush with a nonzero physical y, not only full-frame refreshes.
     lv_area_t area = {0, 17, 159, 19};
     uint8_t partial[sizeof(display_buffer)] = {0};
@@ -108,5 +120,9 @@ int main(int argc, char **argv) {
     assert(partial_rows);
     lv_display_delete(display);
     lv_deinit();
-    return 0;
+    printf("LVGL heap: peak=%u/%u bytes, allocation failures=%u, largest failure=%u\n",
+           (unsigned)reel_test_heap_peak(), REEL_TEST_HEAP_BYTES,
+           (unsigned)reel_test_heap_failures(), (unsigned)reel_test_heap_largest_failure());
+    assert(reel_test_heap_peak() > 0); // Verify the bounded allocator was actually used.
+    return reel_test_heap_failures() ? 2 : 0;
 }

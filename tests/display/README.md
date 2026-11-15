@@ -9,6 +9,21 @@ the RMK artwork and status geometry, with the unused Bluetooth footer removed.
 It covers all four layers, charging at low/medium battery levels,
 0/100/unknown battery, disconnect, and reconnected rendering.
 
+LVGL uses a custom **fixed 8192-byte arena**, matching the device display pool's
+capacity rather than unlimited libc malloc. The allocator has 16-byte host
+alignment/headers and first-fit allocation with coalescing, so its bookkeeping
+cost is conservative compared with the 32-bit firmware. Any failed allocation
+fails the test, and 120 further state changes must preserve the initial frame.
+Peak pool usage and the largest failed request are printed.
+
+The previous 68x160 A1 base required a 11523-byte temporary allocation when LVGL
+expanded its 9-byte packed rows to 72-byte A8 rows. It therefore disappeared on
+the 8192-byte device heap while the dynamic widgets remained visible. With the
+old generated assets selected through `REEL_TEST_ASSET_SOURCE`, the bounded
+test reproduces the missing layer labels, battery outline and separator. The
+runtime base is now a native A8 alpha image in flash, used directly by LVGL
+without that temporary bitmap. The original raw source remains unchanged.
+
 This checks the LVGL rendering path, including glyph metrics, color polarity,
 rotation, palette skipping, nonzero-row partial flushes, and clearing of stale
 marks. Disabling the stock nice_view inversion must reproduce the exact

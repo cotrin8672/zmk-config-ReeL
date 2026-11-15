@@ -44,8 +44,10 @@ at y=141 and Bluetooth icon at y=146..154 are omitted. All pixels in rows
 The five profile squares were dynamic geometry, not part of the raw artwork;
 the USB-dongle reference screen omits them as well.
 
-Generated comments record both source fingerprints and the derived A1 base's
+Generated comments record both source fingerprints and the derived A8 base's
 SHA-256, together with the exact footer-clearing rule.
+Runtime A8 SHA-256:
+`4ae0aaf022420ec2d84aeaf72f77e433062d0eb312ad02f5badb65df045b4cf1`.
 
 ## Regeneration
 
@@ -76,18 +78,27 @@ Generated `display/reel_assets.h` exports:
 
 | Symbol | Type | Dimensions / metrics |
 | --- | --- | --- |
-| `reel_status_base` | `const lv_image_dsc_t` | 68 x 160, stride 9 |
-| `reel_charge_mark` | `const lv_image_dsc_t` | 5 x 5, stride 1 |
-| `reel_layer_pointer` | `const lv_image_dsc_t` | 4 x 5, stride 1 |
+| `reel_status_base` | `const lv_image_dsc_t` | A8, 68 x 160, stride 68, 10880 bytes |
+| `reel_charge_mark` | `const lv_image_dsc_t` | A1, 5 x 5, stride 1 |
+| `reel_layer_pointer` | `const lv_image_dsc_t` | A1, 4 x 5, stride 1 |
 | `reel_status_font` | `const lv_font_t` | ASCII `0-9`, `%`, `-`; line height 9, baseline 0 |
 
 The descriptors target ZMK's pinned
 [`zmkfirmware/lvgl` f1db87ee98f1810328a8419572fa42a3b5f352ae](https://github.com/zmkfirmware/lvgl/tree/f1db87ee98f1810328a8419572fa42a3b5f352ae).
-Images use `LV_IMAGE_HEADER_MAGIC` and `LV_COLOR_FORMAT_A1`, with MSB-first,
-byte-aligned rows, zero padding, and no palette. A 1 bit is opaque ink;
-set the image draw descriptor's `recolor` to black, `recolor_opa` to
-`LV_OPA_COVER`, and draw on white. White recoloring on black is also supported.
-The base remains logical portrait; the renderer owns canvas rotation.
+Images use `LV_IMAGE_HEADER_MAGIC` and no palette. Only the large base uses
+`LV_COLOR_FORMAT_A8`: each const alpha byte in Flash is 0 for transparent or
+255 for opaque ink, with no row padding. This costs **9440 additional ROM bytes**
+(10880 versus 1440). The pinned LVGL variable-image A8 decoder uses this map
+directly, avoiding the old A1 base's **11520-byte heap temporary** (expanded A8
+stride 72 x 160), which exceeds Zephyr's 8192-byte `LV_Z_MEM_POOL_SIZE`.
+The two tiny icons retain `LV_COLOR_FORMAT_A1`, with MSB-first, byte-aligned
+rows, zero padding, and bit 1 for opaque ink.
+
+Set the image draw descriptor's `recolor` to the foreground color and
+`recolor_opa` to `LV_OPA_COVER`: black on white or white on black. The existing
+`CONFIG_NICE_VIEW_WIDGET_INVERTED=y` and foreground recoloring handle display
+polarity, including the source's dark capsule. The base remains logical portrait;
+the renderer owns canvas rotation.
 
 For `lv_draw_label`, set `lv_draw_label_dsc_t.font = &reel_status_font`,
 `letter_space = 0`, and black text. Digits and percent start at the label

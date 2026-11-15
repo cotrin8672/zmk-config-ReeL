@@ -53,4 +53,6 @@ Studioの接続先は、USBでPCにつなぐRaytacドングル（Central）で�
 
 このZephyr版の白黒変換に合わせ、左右は標準のCONFIG_NICE_VIEW_WIDGET_INVERTEDを有効にし、カスタム画面も同じパレット設定に従います。検証はLVGL内部の画像だけでなく、実際のZephyr変換を通したls0xx向けの送信データまで確認します。
 
+大きな静止画像は、フラッシュ上のLVGL A8画像を直接描画します。A1画像を使うと、このLVGL版では一時展開に11523バイト必要となり、実機の8192バイトの表示用ヒープに収まりません。描画テストも同じ8KB制限を設け、画像だけが消える不具合を検出します。
+
 画像の出典・再生成は [display/assets/README.md](display/assets/README.md)、描画の検証手順は [tests/display/README.md](tests/display/README.md) を参照してください。LCD復元版では、同期処理を持つドングルと画面を持つ左右の3台を同じ成功ビルドに更新してください。

@@ -14,11 +14,14 @@ set(LV_CONF_BUILD_DISABLE_DEMOS ON CACHE BOOL "" FORCE)
 set(LV_CONF_BUILD_DISABLE_THORVG_INTERNAL ON CACHE BOOL "" FORCE)
 add_subdirectory(${LVGL_DIR} lvgl)
 target_include_directories(lvgl SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+set(REEL_TEST_ASSET_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../../display/reel_assets.c"
+    CACHE FILEPATH "Generated display assets to exercise with the bounded heap")
 add_executable(reel_display_preview
   render.c
+  bounded_heap.c
   ${ZEPHYR_DIR}/modules/lvgl/lvgl_display_mono.c
   ../../display/reel_canvas.c
-  ../../display/reel_assets.c)
+  ${REEL_TEST_ASSET_SOURCE})
 target_link_libraries(reel_display_preview PRIVATE lvgl)
 target_include_directories(reel_display_preview PRIVATE
   ../../display zephyr-shim ${ZEPHYR_DIR}/modules/lvgl/include)

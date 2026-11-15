@@ -3,7 +3,8 @@
  * lcd_status_base_68x160.raw SHA-256: 749c175a3d62127e1f599920b70085d4656913794f41212dc698d3e26e64657d
  * status_symbols.json SHA-256: 8bc3193e7beac99966b3a18c021e0ba7b1feea19afd888c6b12532c12b8a2b31
  * Runtime base: rows 141..159 cleared (USB dongle).
- * reel_status_base A1 SHA-256: 00cea9f21c98646bbc1fb40fefe29f4544b01fbe60c3091ed74c40694b6c1919
+ * reel_status_base: A8, stride 68, 10880 bytes (0 = clear, 255 = ink).
+ * reel_status_base A8 SHA-256: 4ae0aaf022420ec2d84aeaf72f77e433062d0eb312ad02f5badb65df045b4cf1
  */
 
 #ifndef REEL_ASSETS_H
@@ -25,10 +26,12 @@ extern "C" {
 #define REEL_STATUS_FONT_LINE_HEIGHT 9
 #define REEL_STATUS_FONT_ADVANCE 6
 
-/* Portrait A1 masks: MSB first, byte-aligned rows, bit 1 = opaque ink.
+/* Portrait A8 base: stride 68, 10880 const alpha bytes, 0 = clear, 255 = ink.
  * Base rows 141..159 are clear; the original source artwork is preserved.
  * Draw in black on a white background; no palette or driver is included. */
 extern const lv_image_dsc_t reel_status_base;
+
+/* Tiny A1 masks: MSB first, byte-aligned rows, bit 1 = opaque ink. */
 extern const lv_image_dsc_t reel_charge_mark;
 extern const lv_image_dsc_t reel_layer_pointer;
 

@@ -42,6 +42,11 @@ def pack_msb(rows, *, row_aligned):
                  for pos in range(0, len(bits), 8))
 
 
+def pack_a8(rows):
+    """One alpha byte per pixel: 0 is transparent, 255 is opaque ink."""
+    return bytes(ink * 255 for row in rows for ink in row)
+
+
 def load_sources():
     raw = (ASSETS / BASE_SOURCE).read_bytes()
     if len(raw) != ROW_BYTES * HEIGHT:
@@ -84,20 +89,21 @@ def c_bytes(data):
                      for pos in range(0, len(data), 12))
 
 
-def image_c(name, rows):
+def image_c(name, rows, *, a8=False):
     width, height = len(rows[0]), len(rows)
+    data = pack_a8(rows) if a8 else pack_msb(rows, row_aligned=True)
     return f"""static const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST uint8_t {name}_map[] = {{
-{c_bytes(pack_msb(rows, row_aligned=True))}
+{c_bytes(data)}
 }};
 
 const lv_image_dsc_t {name} = {{
     .header = {{
         .magic = LV_IMAGE_HEADER_MAGIC,
-        .cf = LV_COLOR_FORMAT_A1,
+        .cf = LV_COLOR_FORMAT_A{'8' if a8 else '1'},
         .flags = 0,
         .w = {width},
         .h = {height},
-        .stride = {(width + 7) // 8},
+        .stride = {width if a8 else (width + 7) // 8},
         .reserved_2 = 0,
     }},
     .data_size = sizeof({name}_map),
@@ -174,8 +180,10 @@ def generate(base, symbols, hashes):
     for name, digest in hashes.items():
         provenance += f" * {name} SHA-256: {digest}\n"
     provenance += f" * Runtime base: rows {FOOTER_START}..{HEIGHT - 1} cleared (USB dongle).\n"
-    base_digest = hashlib.sha256(pack_msb(base, row_aligned=True)).hexdigest()
-    provenance += f" * reel_status_base A1 SHA-256: {base_digest}\n"
+    base_data = pack_a8(base)
+    base_digest = hashlib.sha256(base_data).hexdigest()
+    provenance += f" * reel_status_base: A8, stride {WIDTH}, {len(base_data)} bytes (0 = clear, 255 = ink).\n"
+    provenance += f" * reel_status_base A8 SHA-256: {base_digest}\n"
     provenance += " */\n"
     header = provenance + """
 #ifndef REEL_ASSETS_H
@@ -197,10 +205,12 @@ extern "C" {
 #define REEL_STATUS_FONT_LINE_HEIGHT 9
 #define REEL_STATUS_FONT_ADVANCE 6
 
-/* Portrait A1 masks: MSB first, byte-aligned rows, bit 1 = opaque ink.
+/* Portrait A8 base: stride 68, 10880 const alpha bytes, 0 = clear, 255 = ink.
  * Base rows 141..159 are clear; the original source artwork is preserved.
  * Draw in black on a white background; no palette or driver is included. */
 extern const lv_image_dsc_t reel_status_base;
+
+/* Tiny A1 masks: MSB first, byte-aligned rows, bit 1 = opaque ink. */
 extern const lv_image_dsc_t reel_charge_mark;
 extern const lv_image_dsc_t reel_layer_pointer;
 
@@ -216,7 +226,7 @@ extern const lv_font_t reel_status_font;
 #endif /* REEL_ASSETS_H */
 """
     source = provenance + '\n#include "reel_assets.h"\n\n'
-    source += image_c("reel_status_base", base) + "\n"
+    source += image_c("reel_status_base", base, a8=True) + "\n"
     for name in sorted(symbols["icons"]):
         source += image_c(name, bitmap(symbols["icons"][name])) + "\n"
     source += font_c(symbols)
@@ -276,7 +286,7 @@ def main():
                 for path in stale:
                     print(f"Stale or missing: {path.relative_to(ROOT).as_posix()}", file=sys.stderr)
                 return 1
-            print("Display assets match their sources (3 A1 images, 12 font glyphs).")
+            print("Display assets match their sources (1 A8 base, 2 A1 icons, 12 font glyphs).")
             return 0
         if args.preview:
             preview(args.preview, base, symbols)
