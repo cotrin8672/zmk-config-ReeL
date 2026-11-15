@@ -4,5 +4,8 @@ manifest:
       url: https://github.com/zmkfirmware/zmk
       revision: 4de313367288aad5aeaa1243890e40dc813f7008
       import: app/west.yml
+    - name: zmk-trackball-processors
+      url: https://github.com/kaievns/zmk-trackball-processors
+      revision: 4fb5c8ca4b6cbabf1a7b46db8c5520e975759793
   self:
     path: config
