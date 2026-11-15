@@ -1,6 +1,7 @@
 #include "reel.dtsi"
 #include <input/processors.dtsi>
 #include <input/processors/spike_filter.dtsi>
+#include <input/processors/response_curve.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 
 &ball_split { status = "okay"; };
@@ -11,9 +12,9 @@
     excluded-positions = <17 18 19 32 33>;
 };
 
-// 1600 sensor CPI * 3/8 = 600 effective CPI, preserving fractional movement.
-// Smooth raw deltas before scaling, using the same filter on every layer.
-#define REEL_POINTER <&zip_spike_filter 3>, <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 3 8>
+// Base sensitivity without the response curve: 1600 sensor CPI * 3/8 = 600 CPI.
+// Smooth and curve raw deltas before scaling, using the same chain on every layer.
+#define REEL_POINTER <&zip_spike_filter 3>, <&zip_response_curve 3>, <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 3 8>
 
 / {
     kscan: kscan {
