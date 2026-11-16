@@ -12,7 +12,7 @@
     excluded-positions = <17 18 19 32 33>;
 };
 
-// Base sensitivity without the response curve: 1600 sensor CPI * 1/2 = 800 CPI.
+// Base sensitivity without the response curve: 3200 sensor CPI * 1/2 = 1600 CPI.
 // Smooth and curve raw deltas before scaling, using the same chain on every layer.
 #define REEL_POINTER <&zip_spike_filter 3>, <&zip_response_curve 3>, <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_scaler 1 2>
 

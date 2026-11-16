@@ -42,7 +42,7 @@
         reg = <0>;
         spi-max-frequency = <125000>;
         motion-gpios = <&gpio1 14 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        res-cpi = <1600>;
+        res-cpi = <3200>;
         smart-mode;
         zephyr,axis-x = <INPUT_REL_X>;
         zephyr,axis-y = <INPUT_REL_Y>;
