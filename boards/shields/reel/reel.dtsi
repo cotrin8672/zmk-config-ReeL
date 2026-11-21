@@ -2,7 +2,8 @@
 
 / {
     behaviors {
-        reel_disp: reel_disp {
+        // Keep the name already sent over BLE by older dongles.
+        reel_dis {
             compatible = "reel,display-state";
             #binding-cells = <2>;
         };

@@ -57,4 +57,4 @@ Studioの接続先は、USBでPCにつなぐRaytacドングル（Central）で�
 
 大きな静止画像は、フラッシュ上のLVGL A8画像を直接描画します。A1画像を使うと、このLVGL版では一時展開に11523バイト必要となり、実機の8192バイトの表示用ヒープに収まりません。描画テストも同じ8KB制限を設け、画像だけが消える不具合を検出します。
 
-画像の出典・再生成は [display/assets/README.md](display/assets/README.md)、描画の検証手順は [tests/display/README.md](tests/display/README.md) を参照してください。LCD復元版では、同期処理を持つドングルと画面を持つ左右の3台を同じ成功ビルドに更新してください。
+画像の出典・再生成は [display/assets/README.md](display/assets/README.md)、描画の検証手順は [tests/display/README.md](tests/display/README.md) を参照してください。初めてLCD復元版へ移行する場合は3台とも更新してください。LCD対応ドングルを既に使用中なら、レイヤー矢印の修正には左右のUF2更新だけで足ります。

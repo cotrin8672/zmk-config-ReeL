@@ -11,6 +11,7 @@
 #include <zephyr/logging/log.h>
 
 #include <drivers/behavior.h>
+#include <zmk/split/bluetooth/service.h>
 
 #include "reel_display_state.h"
 
@@ -18,8 +19,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 BUILD_ASSERT(DT_NUM_INST_STATUS_OKAY(DT_DRV_COMPAT) == 1,
              "Define one enabled reel,display-state behavior on every split device");
-BUILD_ASSERT(sizeof(DEVICE_DT_NAME(DT_DRV_INST(0))) <= 16,
-             "The split behavior device name must fit in 15 characters");
+BUILD_ASSERT(sizeof(DEVICE_DT_NAME(DT_DRV_INST(0))) <= ZMK_SPLIT_RUN_BEHAVIOR_DEV_LEN,
+             "The display behavior name must fit in the BLE split payload, including NUL");
 
 ZMK_EVENT_IMPL(reel_display_state_changed);
 

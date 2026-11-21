@@ -4,7 +4,8 @@ description: |
   Internal ReeL split display snapshot receiver. A press supplies the central's
   highest active layer (param1, 0..3). Param2 is reserved and ignored to remain
   compatible with the earlier central firmware that sent a host BLE profile.
-  Define the same short device name, reel_disp, on central and peripherals.
+  Define the same device name, reel_dis, on central and peripherals. It matches
+  the eight-character name sent by older dongles that used reel_disp.
   This behavior does not need a keymap binding. Releases have no effect.
 
 compatible: "reel,display-state"
